@@ -1,0 +1,4 @@
+(ns rubik.db)
+
+(def default-db
+  {:name "re-frame"})
