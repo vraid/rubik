@@ -10,14 +10,33 @@
     {:center (proj center)
      :edges (mapv proj edges)}))
 
-(defn project [center? projection {:keys [center pieces max-edge-distance] :as a}]
+(defn project [center? projection {:keys [center pieces max-edge-distance min-edge-distance] :as a}]
   (let
    [projected-center (projection center)
     pole-distance (partial vector/squared-distance [0 0 1])
     center-distance (pole-distance center)
     close? (< center-distance max-edge-distance)
-    projected-pieces (mapv (project-piece projection)
-                           pieces)
+    not-close-enough? (> center-distance min-edge-distance)
+    proj (if (not (and close? not-close-enough?))
+           projection
+           (comp projection
+                 (fn [a]
+                   (let
+                    [dist (pole-distance a)
+                     limit 0.04]
+                     (if (< limit dist)
+                       a
+                       ; try to prevent visual artifacts
+                       (vector/normal
+                        (vector/sum a (vector/scale-to
+                                       (* -3 (- limit dist))
+                                       (vector/subtract center a)))))))))
+    projected-pieces (mapv (project-piece proj)
+                           (if (and close? not-close-enough?)
+                             (filter (fn [a]
+                                       (< 0.00000001 (reduce min 4 (mapv pole-distance (:edges a)))))
+                                     pieces)
+                             pieces))
     centered? (and center?
                    close?
                    ((polygon/in-polygon? [0 0])

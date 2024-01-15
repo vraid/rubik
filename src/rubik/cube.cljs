@@ -139,7 +139,8 @@
   (let
    [distance (map (partial vector/squared-distance center) (mapcat :edges pieces))]
     (assoc square
-           :max-edge-distance (reduce max 0 distance))))
+           :max-edge-distance (reduce max 0 distance)
+           :min-edge-distance (reduce min 4 distance))))
 
 (defn quadruplicate [square]
   (mapv (fn [n]
