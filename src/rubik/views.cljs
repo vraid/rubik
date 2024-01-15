@@ -3,31 +3,10 @@
             [reagent.core :as reagent]
             [reagent.dom :as rdom]
             [thi.ng.geom.gl.core :as gl]
-            [rubik.math.quaternion :as quaternion]
-            [rubik.math.projection :as projection]
-            [rubik.cube :as cube]
             [rubik.subs :as subs]
             [rubik.events :as events]
+            [rubik.transform :as transform]
             [rubik.draw :as draw]))
-
-(defn project-piece [proj]
-  (fn [{:keys [center edges]}]
-    {:center (proj center)
-     :edges (mapv proj edges)}))
-
-(defn project [projection {:keys [center pieces] :as square}]
-  (let
-   [projected-pieces (mapv (project-piece projection)
-                           pieces)]
-    (assoc square
-           :center (projection center)
-           :center-edges (let
-                          [ls (mapcat (fn [piece]
-                                        [(first (:edges piece))
-                                         (:center piece)])
-                                      projected-pieces)]
-                           (conj (vec ls) (first ls)))
-           :pieces projected-pieces)))
 
 (defn canvas-inner []
   (let [mount (fn [canvas]
@@ -40,13 +19,9 @@
                    (draw/draw-canvas (rdom/dom-node canvas)
                                      (:shader props)
                                      (:buffers props)
-                                     (mapv (comp (partial project projection/stereographic)
-                                                 (fn [square]
-                                                   (cube/rotate-square
-                                                    (quaternion/matrix-vector-product
-                                                     (:rotation (:perspective props)))
-                                                    square)))
-                                           (:geometry props)))))]
+                                     (transform/transform-data
+                                      (:geometry props)
+                                      (:rotation (:perspective props))))))]
     (reagent/create-class
      {:reagent-render (fn []
                         [:canvas {:width 1000
