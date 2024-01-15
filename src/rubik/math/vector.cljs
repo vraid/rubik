@@ -26,3 +26,13 @@
 
 (defn squared-distance [a b]
   (squared-length (subtract a b)))
+
+(defn base-remainder [f length values]
+  (Math/sqrt (- length (reduce + 0 (map f values)))))
+
+(def scalar-remainder (partial base-remainder square))
+
+(def remainder (partial base-remainder squared-length))
+
+(defn atan2 [a b]
+  (Math/atan2 (length a) (length b)))
