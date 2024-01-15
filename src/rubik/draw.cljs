@@ -37,16 +37,24 @@
         (recur (inc n) b (rest ls)))
       (inc n))))
 
-(defn triangles [to-vertices n {:keys [pieces color center center-edges]}]
-  (let
-   [n (to-vertices n color center center-edges)]
-    (loop [n n
-           pieces pieces]
-      (if (seq pieces)
-        (let
-         [piece (first pieces)]
-          (recur (to-vertices n color (:center piece) (:edges piece)) (rest pieces)))
-        n))))
+(defn triangles [to-vertices n {:keys [pieces color centered? center center-edges]}]
+  (if centered?
+    (let
+     [edges (mapv :edges pieces)
+      black #js [0 0 0 1]
+      center #js [0 0 0]
+      square [#js [-100 -100 0] #js [100 -100 0] #js [100 100 0] #js [-100 100 0] #js [-100 -100 0]]
+      n (to-vertices n color center square)]
+      (to-vertices n black center (reverse (concat (first edges) (mapcat rest (rest edges))))))
+    (let
+     [n (to-vertices n color center center-edges)]
+      (loop [n n
+             pieces pieces]
+        (if (seq pieces)
+          (let
+           [piece (first pieces)]
+            (recur (to-vertices n color (:center piece) (:edges piece)) (rest pieces)))
+          n)))))
 
 (defn fill-buffers [to-vertices squares]
   (loop [n 0 squares squares]

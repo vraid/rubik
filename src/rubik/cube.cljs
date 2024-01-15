@@ -135,6 +135,12 @@
          :center (rotated center)
          :pieces (mapv (partial rotate-piece rotated) pieces)))
 
+(defn with-distance [{:keys [center pieces] :as square}]
+  (let
+   [distance (map (partial vector/squared-distance center) (mapcat :edges pieces))]
+    (assoc square
+           :max-edge-distance (reduce max 0 distance))))
+
 (defn quadruplicate [square]
   (mapv (fn [n]
           (rotate-square
@@ -145,9 +151,10 @@
 
 (defn geometry [settings]
   (let
-   [face (concat [(center-square settings)]
-                 (quadruplicate (top-square settings))
-                 (quadruplicate (corner-square settings)))
+   [face (map with-distance
+              (concat [(center-square settings)]
+                      (quadruplicate (top-square settings))
+                      (quadruplicate (corner-square settings))))
     rotation (fn [axis angle]
                (quaternion/integral-matrix-vector-product
                 (quaternion/from-axis-angle axis angle)))]
