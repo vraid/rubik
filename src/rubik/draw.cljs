@@ -5,6 +5,11 @@
             [thi.ng.geom.gl.webgl.constants :as glc]
             [thi.ng.geom.matrix :as mat]))
 
+(def default-shader (sh-basic/make-shader-spec-2d true))
+
+(defn make-shader [gl]
+  (sh/make-shader-from-spec gl default-shader))
+
 (defn buffer-insert [buffer size data offset]
   (when (seq data)
     (.set buffer (first data) (* size offset))
@@ -49,7 +54,7 @@
       (recur (triangles to-vertices n (first squares)) (rest squares))
       n)))
 
-(defn draw-canvas [canvas buffers data]
+(defn draw-canvas [canvas shader buffers data]
   (let [gl (gl/gl-context canvas)
         view-rect (gl/get-viewport-rect gl)
         h 5
@@ -60,7 +65,6 @@
         _ (.fill color-buffer 0)
         face-count (fill-buffers (partial to-vertices vertex-buffer color-buffer)
                                  data)
-        shader (sh/make-shader-from-spec gl (sh-basic/make-shader-spec-2d true))
         model (-> (vertex-data vertex-buffer color-buffer face-count)
                   (gl/make-buffers-in-spec gl glc/static-draw)
                   (update :uniforms merge {:proj (gl/ortho (- w) h w (- h) -1 1)

@@ -8,6 +8,11 @@
  (fn [_ _]
    db/default-db))
 
+(re-frame/reg-event-db
+ ::set-shader
+ (fn [db [_ shader]]
+   (assoc db :shader shader)))
+
 (defn apply-rotation [db]
   (let
    [rotation (:rotation db)

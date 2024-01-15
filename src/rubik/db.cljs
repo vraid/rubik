@@ -22,6 +22,7 @@
                 buffer-size (* vertex-count square-count (+ 8 (* 16 vertices-per-side)))]
                 {:vertices (js/Float32Array. (* 3 buffer-size))
                  :colors (js/Float32Array. (* 4 buffer-size))})
+     :shader nil
      :perspective perspective
      :rotation {:axis (random/random-axis)
                 :speed 0.002}
