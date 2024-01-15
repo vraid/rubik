@@ -128,7 +128,22 @@
       (create-piece top-left top-axis-angle left-axis-angle)
       (create-piece bottom-left left-axis-angle bottom-axis-angle)]}))
 
+(defn rotate-square [rotated {:keys [coordinates normal center pieces] :as square}]
+  (assoc square
+         :coordinates (rotated coordinates)
+         :normal (rotated normal)
+         :center (rotated center)
+         :pieces (mapv (partial rotate-piece rotated) pieces)))
+
+(defn quadruplicate [square]
+  (mapv (fn [n]
+          (rotate-square
+           (quaternion/integral-matrix-vector-product
+            (quaternion/from-axis-angle [0 0 -1] (* 0.5 Math/PI n)))
+           square))
+        (range 4)))
+
 (defn geometry [settings]
-  [(center-square settings)
-   (top-square settings)
-   (corner-square settings)])
+  (concat [(center-square settings)]
+          (quadruplicate (top-square settings))
+          (quadruplicate (corner-square settings))))

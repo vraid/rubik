@@ -13,7 +13,7 @@
                          :outer (+ space space-width)}})]
     {:geometry geometry
      :buffers (let
-               [square-count 3
+               [square-count 9
                 vertex-count 3
                 buffer-size (* vertex-count square-count (+ 8 (* 16 vertices-per-side)))]
                 {:vertices (js/Float32Array. (* 3 buffer-size))
