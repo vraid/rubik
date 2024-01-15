@@ -24,9 +24,10 @@
 
 (defn center-square [settings]
   (let
-   [{vertices :vertices
-     space-inner :space-inner} settings
-    base-length (Math/sqrt (- 1 (square space-inner)))
+   [{spacing :spacing
+     vertices :vertices} settings
+    {space-inner :inner} spacing
+    base-length (vector/scalar-remainder 1 [space-inner])
     base-xy space-inner
     base-z (Math/sqrt (- (square base-length) (square base-xy)))
     angle (Math/atan2 base-xy base-z)
@@ -43,3 +44,43 @@
      (mapv (fn [rotation]
              (rotate-piece (partial quaternion/vector-product rotation) piece))
            rotations)}))
+
+(defn top-square [settings]
+  (let
+   [{spacing :spacing
+     vertices :vertices} settings
+    {space-inner :inner
+     space-outer :outer
+     space-width :width} spacing
+    bottom-x [space-inner 0 0]
+    bottom-y [0 space-outer 0]
+    bottom-z [0 0 (- (vector/remainder 1 [bottom-x bottom-y]))]
+    top-x [space-inner 0 0]
+    top-z (vector/scale-to space-width [0 -1 -1])
+    top-y (vector/scale-to (vector/remainder 1 [top-x top-z]) [0 1 -1])
+    bottom-axis-angle [[0 -1 0] (vector/atan2 bottom-x bottom-z)]
+    top-axis-angle [[0 1 1] (vector/atan2 top-x top-y)]
+    side-angle (let [top-vector (reduce vector/sum [top-x top-y top-z])
+                     [_ top-y top-z] top-vector]
+                 (* 0.5 (- (Math/atan2 top-y (Math/abs top-z))
+                           (vector/atan2 bottom-y bottom-z))))
+    right-axis-angle [[1 0 0] side-angle]
+    left-axis-angle [[-1 0 0] side-angle]
+    center (vector/normal (reduce vector/sum [bottom-y bottom-z top-y top-z]))
+    create-piece (partial create-piece vertices center)
+    bottom-left (reduce vector/sum [(vector/scale-by -1 bottom-x) bottom-y bottom-z])
+    bottom-right (reduce vector/sum [bottom-x bottom-y bottom-z])
+    top-right (reduce vector/sum [top-x top-y top-z])
+    top-left (reduce vector/sum [(vector/scale-by -1 top-x) top-y top-z])]
+    {:coordinates [0 1 -1]
+     :normal [0 0 -1]
+     :center center
+     :pieces
+     [(create-piece bottom-right bottom-axis-angle right-axis-angle)
+      (create-piece top-right right-axis-angle top-axis-angle)
+      (create-piece top-left top-axis-angle left-axis-angle)
+      (create-piece bottom-left left-axis-angle bottom-axis-angle)]}))
+
+(defn geometry [settings]
+  [(center-square settings)
+   (top-square settings)])
