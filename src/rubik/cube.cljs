@@ -144,6 +144,19 @@
         (range 4)))
 
 (defn geometry [settings]
-  (concat [(center-square settings)]
-          (quadruplicate (top-square settings))
-          (quadruplicate (corner-square settings))))
+  (let
+   [face (concat [(center-square settings)]
+                 (quadruplicate (top-square settings))
+                 (quadruplicate (corner-square settings)))
+    rotation (fn [axis angle]
+               (quaternion/integral-matrix-vector-product
+                (quaternion/from-axis-angle axis angle)))]
+    (mapcat (fn [rotation]
+              (mapv (partial rotate-square rotation)
+                    face))
+            [(rotation [1 0 0] 0)
+             (rotation [0 1 0] (* 0.5 Math/PI))
+             (rotation [-1 0 0] (* 0.5 Math/PI))
+             (rotation [1 0 0] (* 0.5 Math/PI))
+             (rotation [0 -1 0] (* 0.5 Math/PI))
+             (rotation [0 1 0] Math/PI)])))
