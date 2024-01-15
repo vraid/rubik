@@ -52,7 +52,7 @@
 (defn draw-canvas [canvas buffers data]
   (let [gl (gl/gl-context canvas)
         view-rect (gl/get-viewport-rect gl)
-        h 2
+        h 5
         w h
         {vertex-buffer :vertices
          color-buffer :colors} buffers
