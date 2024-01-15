@@ -9,8 +9,7 @@
     geometry [(cube/center-square
                {:vertices vertices-per-side
                 :space-inner (- space space-width)})]]
-    {:name "re-frame"
-     :geometry geometry
+    {:geometry geometry
      :buffers (let
                [vertex-count 3
                 buffer-size (* vertex-count (+ 8 (* 16 vertices-per-side)))]
