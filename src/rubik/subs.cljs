@@ -3,6 +3,4 @@
 
 (re-frame/reg-sub
  ::data
- (fn [db]
-   {:geometry (:geometry db)
-    :buffers (:buffers db)}))
+ identity)

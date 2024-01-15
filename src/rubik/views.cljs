@@ -2,7 +2,9 @@
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [reagent.dom :as rdom]
+            [rubik.math.quaternion :as quaternion]
             [rubik.math.projection :as projection]
+            [rubik.cube :as cube]
             [rubik.subs :as subs]
             [rubik.draw :as draw]))
 
@@ -31,7 +33,12 @@
                 [props (reagent/props canvas)]
                  (draw/draw-canvas (rdom/dom-node canvas)
                                    (:buffers props)
-                                   (mapv (partial project projection/stereographic)
+                                   (mapv (comp (partial project projection/stereographic)
+                                               (fn [square]
+                                                 (cube/rotate-square
+                                                  (quaternion/matrix-vector-product
+                                                   (:rotation (:perspective props)))
+                                                  square)))
                                          (:geometry props)))))]
     (reagent/create-class
      {:reagent-render (fn []
