@@ -22,9 +22,9 @@
    :num-vertices (* 3 face-count)
    :num-faces face-count})
 
-(defn to-vertices [vertex-buffer color-buffer n center edges]
+(defn to-vertices [vertex-buffer color-buffer n color center edges]
   (loop [n n a (first edges) ls (rest edges)]
-    (buffer-insert color-buffer 4 (repeat 3 #js [1 1 1 1]) (* 3 n))
+    (buffer-insert color-buffer 4 (repeat 3 color) (* 3 n))
     (if (seq ls)
       (let
        [b (first ls)]
@@ -32,15 +32,15 @@
         (recur (inc n) b (rest ls)))
       (inc n))))
 
-(defn triangles [to-vertices n {:keys [pieces center center-edges]}]
+(defn triangles [to-vertices n {:keys [pieces color center center-edges]}]
   (let
-   [n (to-vertices n center center-edges)]
+   [n (to-vertices n color center center-edges)]
     (loop [n n
            pieces pieces]
       (if (seq pieces)
         (let
          [piece (first pieces)]
-          (recur (to-vertices n (:center piece) (:edges piece)) (rest pieces)))
+          (recur (to-vertices n color (:center piece) (:edges piece)) (rest pieces)))
         n))))
 
 (defn fill-buffers [to-vertices squares]

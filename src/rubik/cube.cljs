@@ -151,12 +151,14 @@
     rotation (fn [axis angle]
                (quaternion/integral-matrix-vector-product
                 (quaternion/from-axis-angle axis angle)))]
-    (mapcat (fn [rotation]
-              (mapv (partial rotate-square rotation)
+    (mapcat (fn [[color rotation]]
+              (mapv (fn [square]
+                      (assoc (rotate-square rotation square)
+                             :color color))
                     face))
-            [(rotation [1 0 0] 0)
-             (rotation [0 1 0] (* 0.5 Math/PI))
-             (rotation [-1 0 0] (* 0.5 Math/PI))
-             (rotation [1 0 0] (* 0.5 Math/PI))
-             (rotation [0 -1 0] (* 0.5 Math/PI))
-             (rotation [0 1 0] Math/PI)])))
+            [[#js [1 1 1 1] (rotation [1 0 0] 0)]
+             [#js [1 0 0 1] (rotation [0 1 0] (* 0.5 Math/PI))]
+             [#js [0 0 1 1] (rotation [-1 0 0] (* 0.5 Math/PI))]
+             [#js [0 1 0 1] (rotation [1 0 0] (* 0.5 Math/PI))]
+             [#js [1 0 1 1] (rotation [0 -1 0] (* 0.5 Math/PI))]
+             [#js [1 1 0 1] (rotation [0 1 0] Math/PI)]])))
