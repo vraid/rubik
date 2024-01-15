@@ -5,11 +5,12 @@
 (defn square [a] (* a a))
 
 (defn stepwise-vertices [vertices axis angle vector]
-  (mapv (fn [n]
+  (mapv (fn [a]
           (quaternion/vector-product
-           (quaternion/from-axis-angle axis (* (/ n (dec (* 2 vertices))) angle))
+           (quaternion/from-axis-angle axis a)
            vector))
-        (range (* 2 vertices))))
+        (map (partial * (/ angle (dec (* 2 vertices))))
+             (range (* 2 vertices)))))
 
 (defn rotate-piece [rotated {:keys [center edges]}]
   {:center (rotated center)
@@ -29,7 +30,7 @@
     {space-inner :inner} spacing
     base-length (vector/scalar-remainder 1 [space-inner])
     base-xy space-inner
-    base-z (Math/sqrt (- (square base-length) (square base-xy)))
+    base-z (vector/scalar-remainder (square base-length) [base-xy])
     angle (Math/atan2 base-xy base-z)
     corner [base-xy base-xy (- base-z)]
     rotations (map (comp (partial quaternion/from-axis-angle [0 0 1])
@@ -60,8 +61,9 @@
     top-y (vector/scale-to (vector/remainder 1 [top-x top-z]) [0 1 -1])
     bottom-axis-angle [[0 -1 0] (vector/atan2 bottom-x bottom-z)]
     top-axis-angle [[0 1 1] (vector/atan2 top-x top-y)]
-    side-angle (let [top-vector (reduce vector/sum [top-x top-y top-z])
-                     [_ top-y top-z] top-vector]
+    side-angle (let
+                [top-vector (reduce vector/sum [top-x top-y top-z])
+                 [_ top-y top-z] top-vector]
                  (* 0.5 (- (Math/atan2 top-y (Math/abs top-z))
                            (vector/atan2 bottom-y bottom-z))))
     right-axis-angle [[1 0 0] side-angle]
@@ -91,11 +93,11 @@
                  [xy space-outer]
                   [xy xy (- (vector/scalar-remainder 1 [xy xy]))])
     top-right (let
-               [k (Math/sqrt (/ (square space-width) 2))
-                xy (/ (- (Math/sqrt (- 3 (* 8 (square k))))
-                         (* 2 k))
-                      3)
-                z (+ xy (* 2 k))]
+               [k (* space-width (Math/sqrt 2))
+                xy (* (/ 1 3)
+                      (- (Math/sqrt (- 3 (* 2 (square k))))
+                         k))
+                z (+ xy k)]
                 [xy xy (- z)])
     side-vector (fn [a b c]
                   (let
@@ -106,8 +108,9 @@
     top-left (side-vector [1 0 0] [0 1 -1] [0 -1 -1])
     bottom-right (side-vector [0 1 0] [1 0 -1] [-1 0 -1])
     center (vector/normal (vector/sum bottom-left top-right))
-    inner-angle (let [[_ top-y top-z] top-left
-                      [_ bottom-y bottom-z] bottom-left]
+    inner-angle (let
+                 [[_ top-y top-z] top-left
+                  [_ bottom-y bottom-z] bottom-left]
                   (* 0.5 (- (Math/atan2 top-y (Math/abs top-z))
                             (Math/atan2 bottom-y (Math/abs bottom-z)))))
     outer-angle (let
@@ -143,12 +146,13 @@
            :min-edge-distance (reduce min 4 distance))))
 
 (defn quadruplicate [square]
-  (mapv (fn [n]
+  (mapv (fn [angle]
           (rotate-square
            (quaternion/integral-matrix-vector-product
-            (quaternion/from-axis-angle [0 0 -1] (* 0.5 Math/PI n)))
+            (quaternion/from-axis-angle [0 0 -1] angle))
            square))
-        (range 4)))
+        (map (partial * 0.5 Math/PI)
+             (range 4))))
 
 (defn geometry [settings]
   (let
@@ -156,9 +160,8 @@
               (concat [(center-square settings)]
                       (quadruplicate (top-square settings))
                       (quadruplicate (corner-square settings))))
-    rotation (fn [axis angle]
-               (quaternion/integral-matrix-vector-product
-                (quaternion/from-axis-angle axis angle)))]
+    rotation (comp quaternion/integral-matrix-vector-product
+                   quaternion/from-axis-angle)]
     (mapcat (fn [[color rotation]]
               (mapv (fn [square]
                       (assoc (rotate-square rotation square)
