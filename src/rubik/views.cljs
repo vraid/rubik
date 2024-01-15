@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
             [reagent.dom :as rdom]
+            [rubik.math.projection :as projection]
             [rubik.subs :as subs]
             [rubik.draw :as draw]))
 
@@ -24,18 +25,13 @@
                            (conj (vec ls) (first ls)))
            :pieces projected-pieces)))
 
-(defn orthographic-projection [a]
-  (let
-   [[x y _] a]
-    #js [x y 0]))
-
 (defn canvas-inner []
   (let [draw (fn [canvas]
                (let
                 [props (reagent/props canvas)]
                  (draw/draw-canvas (rdom/dom-node canvas)
                                    (:buffers props)
-                                   (mapv (partial project orthographic-projection)
+                                   (mapv (partial project projection/stereographic)
                                          (:geometry props)))))]
     (reagent/create-class
      {:reagent-render (fn []
