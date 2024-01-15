@@ -1,5 +1,6 @@
 (ns rubik.math.matrix
-  (:refer-clojure :exclude [identity]))
+  (:refer-clojure :exclude [identity])
+  (:require [rubik.math.vector :as vector]))
 
 (defn by-row [f]
   (fn [a b]
@@ -25,6 +26,9 @@
 
 (defn identity [size]
   (diagonal (repeat size 1)))
+
+(defn integral [m]
+  (mapv vector/integral m))
 
 (defn vector-product [m]
   (let

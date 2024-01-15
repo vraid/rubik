@@ -52,3 +52,6 @@
                       [[(- (+ c2 d2)) (- bc ad) (+ bd ac)]
                        [(+ bc ad) (- (+ b2 d2)) (- cd ab)]
                        [(- bd ac) (+ cd ab) (- (+ b2 c2))]]))))
+
+(def matrix-vector-product (comp matrix/vector-product to-matrix))
+(def integral-matrix-vector-product (comp matrix/vector-product matrix/integral to-matrix))

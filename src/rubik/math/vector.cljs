@@ -1,5 +1,8 @@
 (ns rubik.math.vector)
 
+(defn integral [a]
+  (mapv Math/round a))
+
 (defn square [a]
   (* a a))
 
