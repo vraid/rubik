@@ -61,15 +61,11 @@
               current (count @initial-scramble)]
               (str "Scrambling " (* 10 (Math/floor (* 10 (/ (- total current) total)))) "%"))
             "")]
-     [:h2 (if still-scrambling?
-            ""
-            "Welcome to the inside of a Rubik's cube. Click and drag to rotate, or ctrl + drag to change perspective")]
-     [:h2 (if still-scrambling?
-            ""
-            "On touch screens, use one finger to rotate, or two to change perspective")]
-     [:h2 (if still-scrambling?
-            ""
-            "Good luck!")]
+     (when (not still-scrambling?)
+       [:div
+        [:h3 "Welcome to the inside of a Rubik's cube. Click and drag to rotate, or ctrl + drag to change perspective"]
+        [:h3 "On touch screens, use one finger to rotate, or two to change perspective"]
+        [:h3 "Good luck!"]])
      [:button
       {:disabled (or (not @started?) @scramble? (seq @initial-scramble))
        :on-click (fn [_] (re-frame/dispatch [::events/scramble true]))}
