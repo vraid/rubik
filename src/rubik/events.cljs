@@ -18,6 +18,11 @@
    (assoc-in db [:draw-data :shader] shader)))
 
 (re-frame/reg-event-db
+ ::scramble
+ (fn [db [_ a]]
+   (assoc db :scramble? a)))
+
+(re-frame/reg-event-db
  ::disable-rotation
  (fn [db [_ a]]
    (assoc-in db [:rotation :disabled?] a)))
@@ -74,14 +79,17 @@
    (let
     [db (:db cofx)
      time (:time-per-frame db)
+     turn (:turning db)
      db (-> db
             apply-rotation
             apply-turning)
      initial (:initial-scramble db)
      next-turn (or (:turning db)
                    (and (:started? db)
-                        (seq initial)
-                        (first initial)))]
+                        (cond
+                          (seq initial) (first initial)
+                          (:scramble? db) (turns/random-turn (:time-to-turn db) (turns/turn-axis turn))
+                          :else false)))]
      {:db (assoc db :turning next-turn)
       :fx [[:dispatch-later {:ms time :dispatch [::tick]}]]})))
 

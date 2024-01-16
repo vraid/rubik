@@ -9,6 +9,14 @@
           :scale (:scale db))))
 
 (re-frame/reg-sub
+ ::started?
+ :started?)
+
+(re-frame/reg-sub
+ ::scramble?
+ :scramble?)
+
+(re-frame/reg-sub
  ::initial-scramble
  :initial-scramble)
 

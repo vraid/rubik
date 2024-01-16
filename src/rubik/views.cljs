@@ -42,7 +42,9 @@
 
 (defn main-panel []
   (let
-   [initial-scramble-count (re-frame/subscribe [::subs/initial-scramble-count])
+   [started? (re-frame/subscribe [::subs/started?])
+    scramble? (re-frame/subscribe [::subs/scramble?])
+    initial-scramble-count (re-frame/subscribe [::subs/initial-scramble-count])
     initial-scramble (re-frame/subscribe [::subs/initial-scramble])
     still-scrambling? (seq @initial-scramble)
     rotation-disabled? (re-frame/subscribe [::subs/rotation-disabled?])]
@@ -68,6 +70,14 @@
      [:h2 (if still-scrambling?
             ""
             "Good luck!")]
+     [:button
+      {:disabled (or (not @started?) @scramble? (seq @initial-scramble))
+       :on-click (fn [_] (re-frame/dispatch [::events/scramble true]))}
+      "Scramble"]
+     [:button
+      {:disabled (not @scramble?)
+       :on-click (fn [_] (re-frame/dispatch [::events/scramble false]))}
+      "Halt"]
      [:button
       {:on-click (fn [_] (re-frame/dispatch [::events/disable-rotation (not @rotation-disabled?)]))}
       "Toggle rotation"]]))

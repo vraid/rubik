@@ -52,6 +52,7 @@
                 :speed 0.002}
      :time-per-frame 30
      :time-to-turn 600
+     :scramble? false
      :initial-scramble-count initial-scrambles
      :initial-scramble (scrambles 600 120 8 initial-scrambles)
      :started? false
