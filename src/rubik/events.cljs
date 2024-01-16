@@ -19,6 +19,11 @@
    (assoc-in db [:draw-data :shader] shader)))
 
 (re-frame/reg-event-db
+ ::rewind
+ (fn [db [_ a]]
+   (assoc db :rewind? a)))
+
+(re-frame/reg-event-db
  ::scramble
  (fn [db [_ a]]
    (assoc db :scramble? a)))
@@ -26,7 +31,9 @@
 (re-frame/reg-event-db
  ::reset
  (fn [db _]
-   (update db :geometry #(mapv cube/reset-color %))))
+   (-> db
+       (update :geometry #(mapv cube/reset-color %))
+       (assoc :past-turns []))))
 
 (re-frame/reg-event-db
  ::disable-rotation
@@ -79,24 +86,40 @@
         (assoc :perspective quat)
         (assoc-in [:draw-data :perspective] quat))))
 
+(defn apply-next-turn [db current-turn]
+  (let
+   [initial (:initial-scramble db)
+    turn (:turning db)
+    past (:past-turns db)
+    with-past (fn [a] [a (cons (:data a) past)])
+    no-turn [false past]
+    [next-turn past]
+    (if turn
+      [turn past]
+      (if (not (:started? db))
+        no-turn
+        (cond
+          (seq initial) (with-past (first initial))
+          (:scramble? db) (with-past (turns/random-turn (:time-to-turn db) (turns/turn-axis current-turn)))
+          (:rewind? db) (if (empty? past)
+                          no-turn
+                          [(turns/reverse-turn (:time-to-turn db) (first past)) (rest past)])
+          :else no-turn)))]
+    (-> db
+        (assoc :turning next-turn)
+        (assoc :past-turns past)
+        (update :rewind? #(and % (seq past))))))
+
 (re-frame/reg-event-fx
  ::tick
  (fn [cofx _]
    (let
     [db (:db cofx)
-     time (:time-per-frame db)
-     turn (:turning db)
-     db (-> db
-            apply-rotation
-            apply-turning)
-     initial (:initial-scramble db)
-     next-turn (or (:turning db)
-                   (and (:started? db)
-                        (cond
-                          (seq initial) (first initial)
-                          (:scramble? db) (turns/random-turn (:time-to-turn db) (turns/turn-axis turn))
-                          :else false)))]
-     {:db (assoc db :turning next-turn)
+     time (:time-per-frame db)]
+     {:db (-> db
+              apply-rotation
+              apply-turning
+              (apply-next-turn (:turning db)))
       :fx [[:dispatch-later {:ms time :dispatch [::tick]}]]})))
 
 (defn translate-scale [offset window value]
@@ -140,16 +163,17 @@
 
 (defn initiate-turn [bounding-rect initial coord]
   (fn [db]
-    (-> db
-        (assoc :turning
-               (let
-                [selected (select/selected-square (:geometry db) initial)
-                 normal (:normal selected)
-                 current (target-point (:scale db) (:perspective db) bounding-rect coord)
-                 cross (vector/cross-product-normal initial current)
-                 axis (turns/closest-axis cross (turns/exclude-axes turns/axes [normal (vector/scale-by -1 normal)]))]
-                 (and (not (vector/invalid? cross))
-                      (turns/initiate (:time-to-turn db) axis (:coordinates selected))))))))
+    (let
+     [selected (select/selected-square (:geometry db) initial)
+      normal (:normal selected)
+      current (target-point (:scale db) (:perspective db) bounding-rect coord)
+      cross (vector/cross-product-normal initial current)
+      axis (turns/closest-axis cross (turns/exclude-axes turns/axes [normal (vector/scale-by -1 normal)]))
+      turn (and (not (vector/invalid? cross))
+                (turns/initiate (:time-to-turn db) axis (:coordinates selected)))]
+      (-> db
+          (assoc :turning turn)
+          (update :past-turns #(if turn (cons (:data turn) %) %))))))
 
 (re-frame/reg-event-db
  ::mouse-up

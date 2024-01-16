@@ -31,13 +31,23 @@
   (and turn
        (first (:data turn))))
 
+(defn to-turn [data time]
+  {:data data
+   :time-total time
+   :time-left time})
+
 (defn initiate [time axis coordinates]
   (let
    [n (significant-index 0 axis)
     coord (nth coordinates n)]
-    {:data [axis n coord]
-     :time-total time
-     :time-left time}))
+    (to-turn [axis n coord]
+             time)))
+
+(defn reverse-turn [time turn]
+  (let
+   [[axis n coord] turn]
+    (to-turn [(vector/scale-by -1 axis) n coord]
+             time)))
 
 (defn random-turn [time previous-axis]
   (let
