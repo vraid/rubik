@@ -21,7 +21,7 @@
                     (quaternion/from-axis-angle
                      axis
                      (:speed rotation)))]
-    (update-in db [:perspective :rotation] rotate)))
+    (update db :perspective rotate)))
 
 (re-frame/reg-event-fx
  ::tick

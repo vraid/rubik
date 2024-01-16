@@ -18,10 +18,11 @@
                   [props (reagent/props canvas)]
                    (draw/draw-canvas (rdom/dom-node canvas)
                                      (:shader props)
+                                     (:scale props)
                                      (:buffers props)
                                      (transform/transform-data
                                       (:geometry props)
-                                      (:rotation (:perspective props))))))]
+                                      (:perspective props)))))]
     (reagent/create-class
      {:reagent-render (fn []
                         [:canvas {:width 1000

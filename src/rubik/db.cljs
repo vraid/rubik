@@ -12,9 +12,7 @@
               {:vertices vertices-per-side
                :spacing {:width space-width
                          :inner (- space space-width)
-                         :outer (+ space space-width)}})
-    perspective {:rotation quaternion/identity
-                 :scale 5}]
+                         :outer (+ space space-width)}})]
     {:geometry geometry
      :buffers (let
                [square-count (* 6 9)
@@ -23,7 +21,8 @@
                 {:vertices (js/Float32Array. (* 3 buffer-size))
                  :colors (js/Float32Array. (* 4 buffer-size))})
      :shader nil
-     :perspective perspective
+     :scale 5
+     :perspective quaternion/identity
      :rotation {:axis (random/random-axis)
                 :speed 0.002}
      :time-per-frame 30}))

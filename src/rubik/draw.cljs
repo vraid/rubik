@@ -62,10 +62,10 @@
       (recur (triangles to-vertices n (first squares)) (rest squares))
       n)))
 
-(defn draw-canvas [canvas shader buffers data]
+(defn draw-canvas [canvas shader scale buffers data]
   (let [gl (gl/gl-context canvas)
         view-rect (gl/get-viewport-rect gl)
-        h 5
+        h scale
         w h
         {vertex-buffer :vertices
          color-buffer :colors} buffers
