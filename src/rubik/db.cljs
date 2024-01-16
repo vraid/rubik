@@ -8,6 +8,7 @@
    [space-width 0.02
     space (Math/sin (/ Math/PI 12))
     vertices-per-side 4
+    perspective (quaternion/from-axis-angle (random/random-axis) (random/random-angle))
     geometry (cube/geometry
               {:vertices vertices-per-side
                :spacing {:width space-width
@@ -22,9 +23,9 @@
                  {:vertices (js/Float32Array. (* 3 buffer-size))
                   :colors (js/Float32Array. (* 4 buffer-size))})
       :shader nil
-      :perspective quaternion/identity}
+      :perspective perspective}
      :scale 5
-     :perspective quaternion/identity
+     :perspective perspective
      :rotation {:paused? false
                 :axis (random/random-axis)
                 :speed 0.002}
