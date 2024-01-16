@@ -1,6 +1,8 @@
 (ns rubik.events
   (:require [re-frame.core :as re-frame]
             [rubik.db :as db]
+            [rubik.turns :as turns]
+            [rubik.select :as select]
             [rubik.math.vector :as vector]
             [rubik.math.quaternion :as quaternion]
             [rubik.math.projection :as projection]))
@@ -14,6 +16,26 @@
  ::set-shader
  (fn [db [_ shader]]
    (assoc-in db [:draw-data :shader] shader)))
+
+(defn apply-turning [db]
+  (if (not (:turning db))
+    db
+    (let
+     [turn (:turning db)
+      {time-left :time-left} turn
+      time-per-frame (:time-per-frame db)
+      time-left (- time-left time-per-frame)]
+      (if (> time-left 0)
+        (-> db
+            (assoc-in [:turning :time-left] time-left)
+            (assoc-in [:draw-data :square-rotation] (turns/turn-partial (assoc (:turning db) :time-left time-left))))
+        (let
+         [turned (turns/turn-geometry (:geometry db) turn)]
+          (-> db
+              (assoc :turning false)
+              (assoc :geometry turned)
+              (assoc-in [:draw-data :geometry] turned)
+              (assoc-in [:draw-data :square-rotation] (fn [_] quaternion/identity))))))))
 
 (defn apply-rotation [db]
   (let
@@ -36,7 +58,9 @@
    (let
     [db (:db cofx)
      time (:time-per-frame db)]
-     {:db (apply-rotation db)
+     {:db (-> db
+              apply-rotation
+              apply-turning)
       :fx [[:dispatch-later {:ms time :dispatch [::tick]}]]})))
 
 (defn translate-scale [offset window value]
@@ -76,6 +100,18 @@
                          :coord coord
                          :vector vec)))))))
 
+(defn initiate-turn [bounding-rect initial coord]
+  (fn [db]
+    (-> db
+        (assoc :turning
+               (let
+                [selected (select/selected-square (:geometry db) initial)
+                 normal (:normal selected)
+                 current (target-point (:scale db) (:perspective db) bounding-rect coord)
+                 cross (vector/cross-product-normal initial current)
+                 axis (turns/closest-axis cross (turns/exclude-axes turns/axes [normal (vector/scale-by -1 normal)]))]
+                 (and (not (vector/invalid? cross))
+                      (turns/initiate (:time-to-turn db) axis (:coordinates selected))))))))
 
 (re-frame/reg-event-db
  ::mouse-up
@@ -84,8 +120,16 @@
     [mouse-down (:mouse-down db)
      end-mouse-down? (and mouse-down
                           (= (:button mouse-down)
-                             (:button extra)))]
+                             (:button extra)))
+     initiate-turn (if (and (not (:turning db))
+                            (not (:ctrl? mouse-down))
+                            end-mouse-down?)
+                     (initiate-turn (:bounding-rect mouse-down)
+                                    (:vector mouse-down)
+                                    coord)
+                     identity)]
      (-> db
+         initiate-turn
          (update-in [:rotation :paused?] #(and % (not end-mouse-down?)))
          (assoc :mouse-event [:up coord extra])
          (assoc :mouse-down (and (not end-mouse-down?)

@@ -52,10 +52,13 @@
            :pieces projected-pieces
            :centered? centered?)))
 
-(defn transform-data [geometry rotation]
+(defn transform-data [geometry rotation square-rotation]
   (sort-by (comp not :centered?)
            (mapv (comp (partial project true projection/stereographic)
-                       (partial cube/rotate-square
-                                (quaternion/matrix-vector-product
-                                 rotation)))
+                       (fn [square]
+                         (cube/rotate-square
+                          (quaternion/matrix-vector-product
+                           (quaternion/product rotation
+                                               (square-rotation square)))
+                          square)))
                  geometry)))

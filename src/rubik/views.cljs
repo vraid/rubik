@@ -23,7 +23,8 @@
                                      (:buffers props)
                                      (transform/transform-data
                                       (:geometry props)
-                                      (:perspective props)))))]
+                                      (:perspective props)
+                                      (:square-rotation props)))))]
     (reagent/create-class
      {:reagent-render (fn []
                         [:canvas {:width 1000

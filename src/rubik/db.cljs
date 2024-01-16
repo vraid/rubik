@@ -23,12 +23,15 @@
                  {:vertices (js/Float32Array. (* 3 buffer-size))
                   :colors (js/Float32Array. (* 4 buffer-size))})
       :shader nil
-      :perspective perspective}
+      :perspective perspective
+      :square-rotation (fn [_] quaternion/identity)}
      :scale 5
      :perspective perspective
      :rotation {:paused? false
                 :axis (random/random-axis)
                 :speed 0.002}
      :time-per-frame 30
+     :time-to-turn 600
+     :turning false
      :mouse-down false
      :mouse-event [:none [0 0]]}))
