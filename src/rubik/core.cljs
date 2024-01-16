@@ -18,8 +18,12 @@
 (defn dispatch-tick-event []
   (re-frame/dispatch [::events/tick]))
 
+(defn dispatch-start [ms]
+  (re-frame/dispatch [::events/start-in ms]))
+
 (defn init []
   (re-frame/dispatch-sync [::events/initialize-db])
   (dev-setup)
   (mount-root)
-  (dispatch-tick-event))
+  (dispatch-tick-event)
+  (dispatch-start 1200))

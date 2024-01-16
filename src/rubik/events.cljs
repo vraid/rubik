@@ -17,6 +17,16 @@
  (fn [db [_ shader]]
    (assoc-in db [:draw-data :shader] shader)))
 
+(re-frame/reg-event-db
+ ::start
+ (fn [db _]
+   (assoc db :started? true)))
+
+(re-frame/reg-event-fx
+ ::start-in
+ (fn [cofx [_ ms]]
+   (assoc cofx :fx [[:dispatch-later {:ms ms :dispatch [::start]}]])))
+
 (defn apply-turning [db]
   (if (not (:turning db))
     db
@@ -64,7 +74,8 @@
             apply-turning)
      initial (:initial-scramble db)
      next-turn (or (:turning db)
-                   (and (seq initial)
+                   (and (:started? db)
+                        (seq initial)
                         (first initial)))]
      {:db (assoc db :turning next-turn)
       :fx [[:dispatch-later {:ms time :dispatch [::tick]}]]})))
@@ -129,7 +140,8 @@
      end-mouse-down? (and mouse-down
                           (= (:button mouse-down)
                              (:button extra)))
-     initiate-turn (if (and (not (:turning db))
+     initiate-turn (if (and (:started? db)
+                            (not (:turning db))
                             (not (:ctrl? mouse-down))
                             end-mouse-down?)
                      (initiate-turn (:bounding-rect mouse-down)
@@ -201,7 +213,8 @@
    (let
     [touch-start (:touch-start db)
      first-coords (comp second first)
-     initiate-turn (if (and (not (:turning db))
+     initiate-turn (if (and (:started? db)
+                            (not (:turning db))
                             touch-start
                             (= 1 (count (:touches touch-start)))
                             (empty? touches))

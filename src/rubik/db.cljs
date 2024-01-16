@@ -53,6 +53,7 @@
      :time-to-turn 600
      :initial-scramble-count initial-scrambles
      :initial-scramble (scrambles 600 120 8 initial-scrambles)
+     :started? false
      :turning false
      :mouse-down false
      :mouse-event [:none [0 0]]
