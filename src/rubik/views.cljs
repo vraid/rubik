@@ -31,6 +31,9 @@
                                   :height 1000
                                   :on-mouse-down input/mouse-down
                                   :on-touch-start input/touch-start
+                                  :on-touch-end input/touch-end
+                                  :on-touch-move input/touch-move
+                                  :on-touch-cancel input/touch-cancel
                                   :style {:display "block"}}])
       :component-did-mount mount
       :component-did-update update
@@ -50,9 +53,6 @@
     rotation-disabled? (re-frame/subscribe [::subs/rotation-disabled?])]
     [:div {:on-mouse-up input/mouse-up
            :on-mouse-move input/mouse-move
-           :on-touch-end input/touch-end
-           :on-touch-move input/touch-move
-           :on-touch-cancel input/touch-cancel
            :style {:width "100vw" :height "100vh" :max-width "100%"}}
      [canvas-outer]
      [:h3 (if still-scrambling?
