@@ -5,6 +5,7 @@
             [thi.ng.geom.gl.core :as gl]
             [rubik.subs :as subs]
             [rubik.events :as events]
+            [rubik.input :as input]
             [rubik.transform :as transform]
             [rubik.draw :as draw]))
 
@@ -27,6 +28,7 @@
      {:reagent-render (fn []
                         [:canvas {:width 1000
                                   :height 1000
+                                  :on-mouse-down input/mouse-down
                                   :style {:display "block"}}])
       :component-did-mount mount
       :component-did-update update
@@ -37,6 +39,8 @@
     [canvas-inner @data]))
 
 (defn main-panel []
-  [:div {:style {:width "100vw" :height "100vh" :max-width "100%"}}
+  [:div {:on-mouse-up input/mouse-up
+         :on-mouse-move input/mouse-move
+         :style {:width "100vw" :height "100vh" :max-width "100%"}}
    [canvas-outer]
    [:h1 "Welcome to Rubik"]])

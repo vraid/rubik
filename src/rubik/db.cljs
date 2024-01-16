@@ -23,6 +23,9 @@
      :shader nil
      :scale 5
      :perspective quaternion/identity
-     :rotation {:axis (random/random-axis)
+     :rotation {:paused? false
+                :axis (random/random-axis)
                 :speed 0.002}
-     :time-per-frame 30}))
+     :time-per-frame 30
+     :mouse-down false
+     :mouse-event [:none [0 0]]}))
