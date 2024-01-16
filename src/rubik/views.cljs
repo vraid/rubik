@@ -35,7 +35,7 @@
       :display-name "gl-canvas"})))
 
 (defn canvas-outer []
-  (let [data (re-frame/subscribe [::subs/data])]
+  (let [data (re-frame/subscribe [::subs/draw-data])]
     [canvas-inner @data]))
 
 (defn main-panel []

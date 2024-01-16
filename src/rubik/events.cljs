@@ -13,19 +13,22 @@
 (re-frame/reg-event-db
  ::set-shader
  (fn [db [_ shader]]
-   (assoc db :shader shader)))
+   (assoc-in db [:draw-data :shader] shader)))
 
 (defn apply-rotation [db]
   (let
    [rotation (:rotation db)
     axis (:axis rotation)
-    rotate (if (:paused? rotation)
-             identity
-             (partial quaternion/product
-                      (quaternion/from-axis-angle
-                       axis
-                       (:speed rotation))))]
-    (update db :perspective rotate)))
+    quat (quaternion/product
+          (quaternion/from-axis-angle
+           axis
+           (if (:paused? rotation)
+             0
+             (:speed rotation)))
+          (:perspective db))]
+    (-> db
+        (assoc :perspective quat)
+        (assoc-in [:draw-data :perspective] quat))))
 
 (re-frame/reg-event-fx
  ::tick

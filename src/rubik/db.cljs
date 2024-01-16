@@ -14,13 +14,15 @@
                          :inner (- space space-width)
                          :outer (+ space space-width)}})]
     {:geometry geometry
-     :buffers (let
-               [square-count (* 6 9)
-                vertex-count 3
-                buffer-size (* vertex-count square-count (+ 8 (* 16 vertices-per-side)))]
-                {:vertices (js/Float32Array. (* 3 buffer-size))
-                 :colors (js/Float32Array. (* 4 buffer-size))})
-     :shader nil
+     :draw-data
+     {:buffers (let
+                [square-count (* 6 9)
+                 vertex-count 3
+                 buffer-size (* vertex-count square-count (+ 8 (* 16 vertices-per-side)))]
+                 {:vertices (js/Float32Array. (* 3 buffer-size))
+                  :colors (js/Float32Array. (* 4 buffer-size))})
+      :shader nil
+      :perspective quaternion/identity}
      :scale 5
      :perspective quaternion/identity
      :rotation {:paused? false
