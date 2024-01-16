@@ -34,4 +34,6 @@
      :time-to-turn 600
      :turning false
      :mouse-down false
-     :mouse-event [:none [0 0]]}))
+     :mouse-event [:none [0 0]]
+     :touch-start false
+     :touch-event [:none [] []]}))

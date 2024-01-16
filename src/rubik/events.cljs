@@ -86,19 +86,21 @@
 (re-frame/reg-event-db
  ::mouse-down
  (fn [db [_ coord extra]]
-   (let
-    [register? (= 0 (:button extra))
-     mouse-down (:mouse-down db)
-     vec (target-point (:scale db) (:perspective db) (:bounding-rect extra) coord)]
-     (-> db
-         (assoc :mouse-event [:down coord extra])
-         (assoc :mouse-down
-                (if (or mouse-down
-                        (not register?))
-                  mouse-down
-                  (assoc extra
-                         :coord coord
-                         :vector vec)))))))
+   (if (:touch-start db)
+     db
+     (let
+      [register? (= 0 (:button extra))
+       mouse-down (:mouse-down db)
+       vec (target-point (:scale db) (:perspective db) (:bounding-rect extra) coord)]
+       (-> db
+           (assoc :mouse-event [:down coord extra])
+           (assoc :mouse-down
+                  (if (or mouse-down
+                          (not register?))
+                    mouse-down
+                    (assoc extra
+                           :coord coord
+                           :vector vec))))))))
 
 (defn initiate-turn [bounding-rect initial coord]
   (fn [db]
@@ -169,3 +171,74 @@
          (update-in [:rotation :paused?] #(or % drag?))
          (assoc :mouse-event [:move coord prev])
          (assoc :perspective rotation)))))
+
+(re-frame/reg-event-db
+ ::touch-start
+ (fn [db [_ touches changed extra]]
+   (if (:mouse-down db)
+     db
+     (let
+      [bounding-rect (:bounding-rect extra)]
+       (-> db
+           (assoc :touch-start
+                  {:bounding-rect bounding-rect
+                   :touches touches
+                   :vectors (into {}
+                                  (map (fn [[id pt]]
+                                         [id (target-point (:scale db) (:perspective db) bounding-rect pt)])
+                                       touches))})
+           (assoc :touch-event [:start touches changed]))))))
+
+(re-frame/reg-event-db
+ ::touch-end
+ (fn [db [_ touches changed]]
+   (let
+    [touch-start (:touch-start db)
+     first-coords (comp second first)
+     initiate-turn (if (and (not (:turning db))
+                            touch-start
+                            (= 1 (count (:touches touch-start)))
+                            (empty? touches))
+                     (initiate-turn (:bounding-rect touch-start)
+                                    (first-coords (:vectors touch-start))
+                                    (first-coords changed))
+                     identity)]
+     (-> db
+         initiate-turn
+         (assoc :touch-event [:end touches changed])
+         (update :touch-start #(and (seq touches) %))
+         (assoc-in [:rotation :paused?] false)))))
+
+(re-frame/reg-event-db
+ ::touch-move
+ (fn [db [_ touches changed]]
+   (let
+    [touch-start (:touch-start db)
+     [_ _ prev] (:touch-event db)
+     average (fn [d]
+               (vector/scale-by
+                (/ 1 (count d))
+                (reduce vector/sum [0 0] (vals d))))
+     [rotation axis] (update-rotation
+                      (and touch-start
+                           (= 2 (count prev))
+                           (= 2 (count changed)))
+                      (:bounding-rect touch-start)
+                      (:scale db)
+                      (:perspective db)
+                      (:axis (:rotation db))
+                      (average changed)
+                      (average prev))]
+     (-> db
+         (assoc :touch-event [:move touches changed])
+         (assoc-in [:rotation :axis] axis)
+         (assoc-in [:rotation :paused?] (= 2 (count changed)))
+         (assoc :perspective rotation)))))
+
+(re-frame/reg-event-db
+ ::touch-cancel
+ (fn [db [_ touches changed]]
+   (-> db
+       (assoc :touch-event [:cancel touches changed])
+       (update :touch-start #(and % (seq touches)))
+       (assoc-in [:rotation :paused?] false))))

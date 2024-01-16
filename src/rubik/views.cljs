@@ -30,6 +30,7 @@
                         [:canvas {:width 1000
                                   :height 1000
                                   :on-mouse-down input/mouse-down
+                                  :on-touch-start input/touch-start
                                   :style {:display "block"}}])
       :component-did-mount mount
       :component-did-update update
@@ -42,6 +43,9 @@
 (defn main-panel []
   [:div {:on-mouse-up input/mouse-up
          :on-mouse-move input/mouse-move
+         :on-touch-end input/touch-end
+         :on-touch-move input/touch-move
+         :on-touch-cancel input/touch-cancel
          :style {:width "100vw" :height "100vh" :max-width "100%"}}
    [canvas-outer]
    [:h1 "Welcome to Rubik"]])
