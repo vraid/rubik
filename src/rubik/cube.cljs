@@ -154,6 +154,19 @@
         (map (partial * 0.5 Math/PI)
              (range 4))))
 
+(defn reset-color [square]
+  (assoc square
+         :color
+         (let
+          [eq (partial = (:normal square))]
+           (cond
+             (eq [1 0 0]) #js [1 0 1 1]
+             (eq [-1 0 0]) #js [1 0 0 1]
+             (eq [0 1 0]) #js [0 1 0 1]
+             (eq [0 -1 0]) #js [0 0 1 1]
+             (eq [0 0 1]) #js [1 1 0 1]
+             (eq [0 0 -1]) #js [1 1 1 1]))))
+
 (defn geometry [settings]
   (let
    [face (map with-distance
@@ -162,14 +175,13 @@
                       (quadruplicate (corner-square settings))))
     rotation (comp quaternion/integral-matrix-vector-product
                    quaternion/from-axis-angle)]
-    (mapcat (fn [[color rotation]]
-              (mapv (fn [square]
-                      (assoc (rotate-square rotation square)
-                             :color color))
-                    face))
-            [[#js [1 1 1 1] (rotation [1 0 0] 0)]
-             [#js [1 0 0 1] (rotation [0 1 0] (* 0.5 Math/PI))]
-             [#js [0 0 1 1] (rotation [-1 0 0] (* 0.5 Math/PI))]
-             [#js [0 1 0 1] (rotation [1 0 0] (* 0.5 Math/PI))]
-             [#js [1 0 1 1] (rotation [0 -1 0] (* 0.5 Math/PI))]
-             [#js [1 1 0 1] (rotation [0 1 0] Math/PI)]])))
+    (mapv reset-color
+          (mapcat (fn [rotation]
+                    (mapv (partial rotate-square rotation)
+                          face))
+                  [(rotation [1 0 0] 0)
+                   (rotation [0 1 0] (* 0.5 Math/PI))
+                   (rotation [-1 0 0] (* 0.5 Math/PI))
+                   (rotation [1 0 0] (* 0.5 Math/PI))
+                   (rotation [0 -1 0] (* 0.5 Math/PI))
+                   (rotation [0 1 0] Math/PI)]))))
