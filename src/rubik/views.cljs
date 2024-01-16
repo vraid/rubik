@@ -43,6 +43,10 @@
   (let [data (re-frame/subscribe [::subs/draw-data])]
     [canvas-inner @data]))
 
+(def button-style
+  {:padding "8px 8px"
+   :margin "4px 4px"})
+
 (defn main-panel []
   (let
    [started? (re-frame/subscribe [::subs/started?])
@@ -67,13 +71,16 @@
         [:h3 "On touch screens, use one finger to rotate, or two to change perspective"]
         [:h3 "Good luck!"]])
      [:button
-      {:disabled (or (not @started?) @scramble? (seq @initial-scramble))
+      {:style button-style
+       :disabled (or (not @started?) @scramble? (seq @initial-scramble))
        :on-click (fn [_] (re-frame/dispatch [::events/scramble true]))}
       "Scramble"]
      [:button
-      {:disabled (not @scramble?)
+      {:style button-style
+       :disabled (not @scramble?)
        :on-click (fn [_] (re-frame/dispatch [::events/scramble false]))}
       "Halt"]
      [:button
-      {:on-click (fn [_] (re-frame/dispatch [::events/disable-rotation (not @rotation-disabled?)]))}
+      {:style button-style
+       :on-click (fn [_] (re-frame/dispatch [::events/disable-rotation (not @rotation-disabled?)]))}
       "Toggle rotation"]]))
