@@ -41,11 +41,29 @@
     [canvas-inner @data]))
 
 (defn main-panel []
-  [:div {:on-mouse-up input/mouse-up
-         :on-mouse-move input/mouse-move
-         :on-touch-end input/touch-end
-         :on-touch-move input/touch-move
-         :on-touch-cancel input/touch-cancel
-         :style {:width "100vw" :height "100vh" :max-width "100%"}}
-   [canvas-outer]
-   [:h1 "Welcome to Rubik"]])
+  (let
+   [initial-scramble-count (re-frame/subscribe [::subs/initial-scramble-count])
+    initial-scramble (re-frame/subscribe [::subs/initial-scramble])
+    still-scrambling? (seq @initial-scramble)]
+    [:div {:on-mouse-up input/mouse-up
+           :on-mouse-move input/mouse-move
+           :on-touch-end input/touch-end
+           :on-touch-move input/touch-move
+           :on-touch-cancel input/touch-cancel
+           :style {:width "100vw" :height "100vh" :max-width "100%"}}
+     [canvas-outer]
+     [:h3 (if still-scrambling?
+            (let
+             [total @initial-scramble-count
+              current (count @initial-scramble)]
+              (str "Scrambling " (* 10 (Math/floor (* 10 (/ (- total current) total)))) "%"))
+            "")]
+     [:h2 (if still-scrambling?
+            ""
+            "Welcome to the inside of a Rubik's cube. Click and drag to rotate, or ctrl + drag to change perspective")]
+     [:h2 (if still-scrambling?
+            ""
+            "On touch screens, use one finger to rotate, or two to change perspective")]
+     [:h2 (if still-scrambling?
+            ""
+            "Good luck!")]]))

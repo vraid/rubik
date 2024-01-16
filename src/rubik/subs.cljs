@@ -7,3 +7,15 @@
    (assoc (:draw-data db)
           :geometry (:geometry db)
           :scale (:scale db))))
+
+(re-frame/reg-sub
+ ::initial-scramble
+ :initial-scramble)
+
+(re-frame/reg-sub
+ ::initial-scramble-count
+ :initial-scramble-count)
+
+(re-frame/reg-sub
+ ::started?
+ :started?)
