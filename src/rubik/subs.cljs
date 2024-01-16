@@ -17,5 +17,6 @@
  :initial-scramble-count)
 
 (re-frame/reg-sub
- ::started?
- :started?)
+ ::rotation-disabled?
+ (fn [db]
+   (:disabled? (:rotation db))))

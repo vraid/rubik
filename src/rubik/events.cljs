@@ -18,6 +18,11 @@
    (assoc-in db [:draw-data :shader] shader)))
 
 (re-frame/reg-event-db
+ ::disable-rotation
+ (fn [db [_ a]]
+   (assoc-in db [:rotation :disabled?] a)))
+
+(re-frame/reg-event-db
  ::start
  (fn [db _]
    (assoc db :started? true)))
@@ -55,7 +60,7 @@
     quat (quaternion/product
           (quaternion/from-axis-angle
            axis
-           (if (:paused? rotation)
+           (if (or (:disabled? rotation) (:paused? rotation))
              0
              (:speed rotation)))
           (:perspective db))]

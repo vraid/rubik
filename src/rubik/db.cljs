@@ -46,7 +46,8 @@
       :square-rotation (fn [_] quaternion/identity)}
      :scale 5
      :perspective perspective
-     :rotation {:paused? false
+     :rotation {:disabled? false
+                :paused? false
                 :axis (random/random-axis)
                 :speed 0.002}
      :time-per-frame 30

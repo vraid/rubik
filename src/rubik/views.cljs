@@ -44,7 +44,8 @@
   (let
    [initial-scramble-count (re-frame/subscribe [::subs/initial-scramble-count])
     initial-scramble (re-frame/subscribe [::subs/initial-scramble])
-    still-scrambling? (seq @initial-scramble)]
+    still-scrambling? (seq @initial-scramble)
+    rotation-disabled? (re-frame/subscribe [::subs/rotation-disabled?])]
     [:div {:on-mouse-up input/mouse-up
            :on-mouse-move input/mouse-move
            :on-touch-end input/touch-end
@@ -66,4 +67,7 @@
             "On touch screens, use one finger to rotate, or two to change perspective")]
      [:h2 (if still-scrambling?
             ""
-            "Good luck!")]]))
+            "Good luck!")]
+     [:button
+      {:on-click (fn [_] (re-frame/dispatch [::events/disable-rotation (not @rotation-disabled?)]))}
+      "Toggle rotation"]]))
