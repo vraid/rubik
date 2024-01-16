@@ -1,7 +1,25 @@
 (ns rubik.db
   (:require [rubik.cube :as cube]
             [rubik.math.quaternion :as quaternion]
-            [rubik.math.random :as random]))
+            [rubik.math.random :as random]
+            [rubik.turns :as turns]))
+
+(defn scrambles [max-time min-time turns-to-max-speed count]
+  (let
+   [half-count (* 0.5 count)
+    base (Math/pow (/ min-time max-time)
+                   (/ 1 turns-to-max-speed))
+    time-at (fn [n] (* max-time (Math/pow base n)))]
+    (reduce (fn [vec n]
+              (let
+               [time
+                (cond
+                  (< n (min turns-to-max-speed half-count)) (time-at n)
+                  (>= n (max (- count turns-to-max-speed) half-count)) (time-at (- count n))
+                  :else min-time)]
+                (cons (turns/random-turn time (turns/turn-axis (and (seq vec) (first vec)))) vec)))
+            []
+            (range count))))
 
 (def default-db
   (let
@@ -13,7 +31,8 @@
               {:vertices vertices-per-side
                :spacing {:width space-width
                          :inner (- space space-width)
-                         :outer (+ space space-width)}})]
+                         :outer (+ space space-width)}})
+    initial-scrambles 40]
     {:geometry geometry
      :draw-data
      {:buffers (let
@@ -32,6 +51,8 @@
                 :speed 0.002}
      :time-per-frame 30
      :time-to-turn 600
+     :initial-scramble-count initial-scrambles
+     :initial-scramble (scrambles 600 120 8 initial-scrambles)
      :turning false
      :mouse-down false
      :mouse-event [:none [0 0]]

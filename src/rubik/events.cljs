@@ -33,6 +33,7 @@
          [turned (turns/turn-geometry (:geometry db) turn)]
           (-> db
               (assoc :turning false)
+              (update :initial-scramble #(and (seq %) (rest %)))
               (assoc :geometry turned)
               (assoc-in [:draw-data :geometry] turned)
               (assoc-in [:draw-data :square-rotation] (fn [_] quaternion/identity))))))))
@@ -57,10 +58,15 @@
  (fn [cofx _]
    (let
     [db (:db cofx)
-     time (:time-per-frame db)]
-     {:db (-> db
-              apply-rotation
-              apply-turning)
+     time (:time-per-frame db)
+     db (-> db
+            apply-rotation
+            apply-turning)
+     initial (:initial-scramble db)
+     next-turn (or (:turning db)
+                   (and (seq initial)
+                        (first initial)))]
+     {:db (assoc db :turning next-turn)
       :fx [[:dispatch-later {:ms time :dispatch [::tick]}]]})))
 
 (defn translate-scale [offset window value]

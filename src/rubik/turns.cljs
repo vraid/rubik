@@ -1,5 +1,6 @@
 (ns rubik.turns
-  (:require [rubik.math.vector :as vector]
+  (:require [rubik.math.random :as random]
+            [rubik.math.vector :as vector]
             [rubik.math.quaternion :as quaternion]))
 
 (defn significant-index [n vec]
@@ -26,6 +27,10 @@
   (first (sort-by (partial vector/squared-distance axis)
                   axes)))
 
+(defn turn-axis [turn]
+  (and turn
+       (first (:data turn))))
+
 (defn initiate [time axis coordinates]
   (let
    [n (significant-index 0 axis)
@@ -33,6 +38,14 @@
     {:data [axis n coord]
      :time-total time
      :time-left time}))
+
+(defn random-turn [time previous-axis]
+  (let
+   [axis (random/random-in
+          (if previous-axis
+            (exclude-axes axes [previous-axis (vector/scale-by -1 previous-axis)])
+            axes))]
+    (initiate time axis (random/random-in [(repeat -1) (repeat 0) (repeat 1)]))))
 
 (defn turn-partial [turn]
   (let

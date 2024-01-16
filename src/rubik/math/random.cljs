@@ -9,3 +9,6 @@
     xy (Math/sqrt (- 1 (* z z)))
     angle (random-angle)]
     [(* xy (Math/cos angle)) (* xy (Math/sin angle)) z]))
+
+(defn random-in [ls]
+  (nth ls (Math/floor (* (count ls) (Math/random)))))
