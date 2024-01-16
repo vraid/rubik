@@ -1,5 +1,8 @@
 (ns rubik.math.vector)
 
+(defn invalid? [a]
+  (js/isNaN (reduce + 0 a)))
+
 (defn integral [a]
   (mapv Math/round a))
 
@@ -29,6 +32,22 @@
 
 (defn squared-distance [a b]
   (squared-length (subtract a b)))
+
+(defn dot-product [a b]
+  (reduce + 0 (mapv * a b)))
+
+(defn cross-product-normal [a b]
+  (let
+   [[a1 a2 a3] a
+    [b1 b2 b3] b]
+    (normal [(- (* a2 b3) (* a3 b2))
+             (- (* a3 b1) (* a1 b3))
+             (- (* a1 b2) (* a2 b1))])))
+
+(defn angle-between [a b]
+  (Math/acos (/ (dot-product a b)
+                (Math/sqrt (* (squared-length a)
+                              (squared-length b))))))
 
 (defn base-remainder [f length values]
   (Math/sqrt (- length (reduce + 0 (map f values)))))
