@@ -1,6 +1,7 @@
 (ns rubik.events
   (:require [re-frame.core :as re-frame]
             [rubik.db :as db]
+            [rubik.cube :as cube]
             [rubik.turns :as turns]
             [rubik.select :as select]
             [rubik.math.vector :as vector]
@@ -21,6 +22,11 @@
  ::scramble
  (fn [db [_ a]]
    (assoc db :scramble? a)))
+
+(re-frame/reg-event-db
+ ::reset
+ (fn [db _]
+   (update db :geometry #(mapv cube/reset-color %))))
 
 (re-frame/reg-event-db
  ::disable-rotation

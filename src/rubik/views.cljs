@@ -72,6 +72,11 @@
         [:h3 "Good luck!"]])
      [:button
       {:style button-style
+       :disabled (or (not @started?) still-scrambling?)
+       :on-click (fn [_] (re-frame/dispatch [::events/reset]))}
+      "Reset to solved state"]
+     [:button
+      {:style button-style
        :disabled (or (not @started?) @scramble? (seq @initial-scramble))
        :on-click (fn [_] (re-frame/dispatch [::events/scramble true]))}
       "Scramble"]
