@@ -47,17 +47,13 @@
   {:padding "8px 8px"
    :margin "4px 4px"})
 
-(defn set-rewind-scramble [a b]
-  (fn []
-    (re-frame/dispatch [::events/rewind a])
-    (re-frame/dispatch [::events/scramble b])))
+(defn set-control [a]
+  (fn [] (re-frame/dispatch [::events/control a])))
 
 (defn main-panel []
   (let
    [past-turns (re-frame/subscribe [::subs/past-turns])
-    started? (re-frame/subscribe [::subs/started?])
-    rewind? (re-frame/subscribe [::subs/rewind?])
-    scramble? (re-frame/subscribe [::subs/scramble?])
+    control (re-frame/subscribe [::subs/control])
     initial-scramble-count (re-frame/subscribe [::subs/initial-scramble-count])
     initial-scramble (re-frame/subscribe [::subs/initial-scramble])
     still-scrambling? (seq @initial-scramble)
@@ -79,23 +75,23 @@
         [:h3 "Good luck!"]])
      [:button
       {:style button-style
-       :disabled (or (not @started?) still-scrambling?)
+       :disabled (some #{@control} [:none :initial])
        :on-click (fn [_] (re-frame/dispatch [::events/reset]))}
       "Reset to solved state"]
      [:button
       {:style button-style
-       :disabled (or still-scrambling? @rewind? (empty? @past-turns))
-       :on-click (set-rewind-scramble true false)}
+       :disabled (or (some #{@control} [:initial :rewind]) (empty? @past-turns))
+       :on-click (set-control :rewind)}
       "Rewind"]
      [:button
       {:style button-style
-       :disabled (or (not @started?) still-scrambling? @scramble?)
-       :on-click (set-rewind-scramble false true)}
+       :disabled (some #{@control} [:none :initial :scramble])
+       :on-click (set-control :scramble)}
       "Scramble"]
      [:button
       {:style button-style
-       :disabled (not (or @scramble? @rewind?))
-       :on-click (set-rewind-scramble false false)}
+       :disabled (not (some #{@control} [:scramble :rewind]))
+       :on-click (set-control :manual)}
       "Halt"]
      [:button
       {:style button-style

@@ -19,14 +19,9 @@
    (assoc-in db [:draw-data :shader] shader)))
 
 (re-frame/reg-event-db
- ::rewind
+ ::control
  (fn [db [_ a]]
-   (assoc db :rewind? a)))
-
-(re-frame/reg-event-db
- ::scramble
- (fn [db [_ a]]
-   (assoc db :scramble? a)))
+   (assoc db :control a)))
 
 (re-frame/reg-event-db
  ::reset
@@ -40,15 +35,10 @@
  (fn [db [_ a]]
    (assoc-in db [:rotation :disabled?] a)))
 
-(re-frame/reg-event-db
- ::start
- (fn [db _]
-   (assoc db :started? true)))
-
 (re-frame/reg-event-fx
  ::start-in
  (fn [cofx [_ ms]]
-   (assoc cofx :fx [[:dispatch-later {:ms ms :dispatch [::start]}]])))
+   (assoc cofx :fx [[:dispatch-later {:ms ms :dispatch [::control :initial]}]])))
 
 (defn apply-turning [db]
   (if (not (:turning db))
@@ -66,7 +56,7 @@
          [turned (turns/turn-geometry (:geometry db) turn)]
           (-> db
               (assoc :turning false)
-              (update :initial-scramble #(and (seq %) (rest %)))
+              (update :initial-scramble #(if (seq %) (rest %) []))
               (assoc :geometry turned)
               (assoc-in [:draw-data :geometry] turned)
               (assoc-in [:draw-data :square-rotation] (fn [_] quaternion/identity))))))))
@@ -91,24 +81,22 @@
    [initial (:initial-scramble db)
     turn (:turning db)
     past (:past-turns db)
+    control (:control db)
     with-past (fn [a] [a (cons (:data a) past)])
-    no-turn [false past]
-    [next-turn past]
-    (if turn
-      [turn past]
-      (if (not (:started? db))
-        no-turn
-        (cond
-          (seq initial) (with-past (first initial))
-          (:scramble? db) (with-past (turns/random-turn (:time-to-turn db) (turns/turn-axis current-turn)))
-          (:rewind? db) (if (empty? past)
-                          no-turn
-                          [(turns/reverse-turn (:time-to-turn db) (first past)) (rest past)])
-          :else no-turn)))]
-    (-> db
-        (assoc :turning next-turn)
-        (assoc :past-turns past)
-        (update :rewind? #(and % (seq past))))))
+    state (if turn
+            [turn past]
+            (case control
+              :initial (and (seq initial) (with-past (first initial)))
+              :scramble (with-past (turns/random-turn (:time-to-turn db) (turns/turn-axis current-turn)))
+              :rewind (and (seq past) [(turns/reverse-turn (:time-to-turn db) (first past)) (rest past)])
+              false))]
+    (if (not state)
+      (assoc db :control (if (= :none control) :none :manual))
+      (let
+       [[next-turn past] state]
+        (-> db
+            (assoc :turning next-turn)
+            (assoc :past-turns past))))))
 
 (re-frame/reg-event-fx
  ::tick
@@ -183,7 +171,7 @@
      end-mouse-down? (and mouse-down
                           (= (:button mouse-down)
                              (:button extra)))
-     initiate-turn (if (and (:started? db)
+     initiate-turn (if (and (= :manual (:control db))
                             (not (:turning db))
                             (not (:ctrl? mouse-down))
                             end-mouse-down?)
@@ -256,7 +244,7 @@
    (let
     [touch-start (:touch-start db)
      first-coords (comp second first)
-     initiate-turn (if (and (:started? db)
+     initiate-turn (if (and (= :manual (:control db))
                             (not (:turning db))
                             touch-start
                             (= 1 (count (:touches touch-start)))

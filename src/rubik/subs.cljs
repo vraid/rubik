@@ -13,16 +13,8 @@
  :past-turns)
 
 (re-frame/reg-sub
- ::started?
- :started?)
-
-(re-frame/reg-sub
- ::rewind?
- :rewind?)
-
-(re-frame/reg-sub
- ::scramble?
- :scramble?)
+ ::control
+ :control)
 
 (re-frame/reg-sub
  ::initial-scramble
