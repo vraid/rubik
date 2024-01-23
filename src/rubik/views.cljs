@@ -7,24 +7,24 @@
             [rubik.events :as events]
             [rubik.input :as input]
             [rubik.transform :as transform]
-            [rubik.draw :as draw]))
+            [rubik.graphics :as graphics]))
 
 (defn canvas-inner []
   (let [mount (fn [canvas]
                 (let
-                 [shader (-> canvas rdom/dom-node gl/gl-context draw/make-shader)]
+                 [shader (-> canvas rdom/dom-node gl/gl-context graphics/make-shader)]
                   (re-frame/dispatch [::events/set-shader shader])))
         update (fn [canvas]
                  (let
                   [props (reagent/props canvas)]
-                   (draw/draw-canvas (rdom/dom-node canvas)
-                                     (:shader props)
-                                     (:scale props)
-                                     (:buffers props)
-                                     (transform/transform-data
-                                      (:geometry props)
-                                      (:perspective props)
-                                      (:square-rotation props)))))]
+                   (graphics/draw-canvas (rdom/dom-node canvas)
+                                         (:shader props)
+                                         (:scale props)
+                                         (:buffers props)
+                                         (transform/transform-data
+                                          (:geometry props)
+                                          (:perspective props)
+                                          (:square-rotation props)))))]
     (reagent/create-class
      {:reagent-render (fn []
                         [:canvas {:width 1000
@@ -40,7 +40,7 @@
       :display-name "gl-canvas"})))
 
 (defn canvas-outer []
-  (let [data (re-frame/subscribe [::subs/draw-data])]
+  (let [data (re-frame/subscribe [::subs/graphics])]
     [canvas-inner @data]))
 
 (def button-style

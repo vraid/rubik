@@ -2,9 +2,9 @@
   (:require [re-frame.core :as re-frame]))
 
 (re-frame/reg-sub
- ::draw-data
+ ::graphics
  (fn [db]
-   (assoc (:draw-data db)
+   (assoc (:graphics db)
           :geometry (:geometry db)
           :scale (:scale db))))
 

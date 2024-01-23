@@ -16,7 +16,7 @@
 (re-frame/reg-event-db
  ::set-shader
  (fn [db [_ shader]]
-   (assoc-in db [:draw-data :shader] shader)))
+   (assoc-in db [:graphics :shader] shader)))
 
 (re-frame/reg-event-db
  ::control
@@ -51,15 +51,15 @@
       (if (> time-left 0)
         (-> db
             (assoc-in [:turning :time-left] time-left)
-            (assoc-in [:draw-data :square-rotation] (turns/turn-partial (assoc (:turning db) :time-left time-left))))
+            (assoc-in [:graphics :square-rotation] (turns/turn-partial (assoc (:turning db) :time-left time-left))))
         (let
          [turned (turns/turn-geometry (:geometry db) turn)]
           (-> db
               (assoc :turning false)
               (update :initial-scramble #(if (seq %) (rest %) []))
               (assoc :geometry turned)
-              (assoc-in [:draw-data :geometry] turned)
-              (assoc-in [:draw-data :square-rotation] (fn [_] quaternion/identity))))))))
+              (assoc-in [:graphics :geometry] turned)
+              (assoc-in [:graphics :square-rotation] (fn [_] quaternion/identity))))))))
 
 (defn apply-rotation [db]
   (let
@@ -74,7 +74,7 @@
           (:perspective db))]
     (-> db
         (assoc :perspective quat)
-        (assoc-in [:draw-data :perspective] quat))))
+        (assoc-in [:graphics :perspective] quat))))
 
 (defn apply-next-turn [db current-turn]
   (let

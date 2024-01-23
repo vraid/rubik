@@ -1,4 +1,4 @@
-(ns rubik.draw
+(ns rubik.graphics
   (:require [thi.ng.geom.gl.core :as gl]
             [thi.ng.geom.gl.shaders :as sh]
             [thi.ng.geom.gl.shaders.basic :as sh-basic]

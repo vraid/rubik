@@ -34,7 +34,7 @@
                          :outer (+ space space-width)}})
     initial-scrambles 40]
     {:geometry geometry
-     :draw-data
+     :graphics
      {:buffers (let
                 [square-count (* 6 9)
                  vertex-count 3
