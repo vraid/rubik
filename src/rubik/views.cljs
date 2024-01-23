@@ -16,15 +16,11 @@
                   (re-frame/dispatch [::events/set-shader shader])))
         update (fn [canvas]
                  (let
-                  [props (reagent/props canvas)]
-                   (graphics/draw-canvas (rdom/dom-node canvas)
-                                         (:shader props)
-                                         (:scale props)
-                                         (:buffers props)
-                                         (transform/transform-data
-                                          (:geometry props)
-                                          (:perspective props)
-                                          (:square-rotation props)))))]
+                  [props (reagent/props canvas)
+                   gl (gl/gl-context (rdom/dom-node canvas))]
+                   (->> (transform/transform-data (:geometry props) (:perspective props) (:square-rotation props))
+                        (graphics/to-model (:buffers props))
+                        (graphics/draw-canvas gl (:shader props) (graphics/projection (:scale props))))))]
     (reagent/create-class
      {:reagent-render (fn []
                         [:canvas {:width 1000

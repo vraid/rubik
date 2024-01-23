@@ -62,23 +62,27 @@
       (recur (triangles to-vertices n (first squares)) (rest squares))
       n)))
 
-(defn draw-canvas [canvas shader scale buffers data]
-  (let [gl (gl/gl-context canvas)
-        view-rect (gl/get-viewport-rect gl)
-        h scale
-        w h
-        {vertex-buffer :vertices
-         color-buffer :colors} buffers
-        _ (.fill vertex-buffer 0)
-        _ (.fill color-buffer 0)
-        face-count (fill-buffers (partial to-vertices vertex-buffer color-buffer)
-                                 data)
-        model (-> (vertex-data vertex-buffer color-buffer face-count)
-                  (gl/make-buffers-in-spec gl glc/static-draw)
-                  (update :uniforms merge {:proj (gl/ortho (- w) h w (- h) -1 1)
-                                           :model mat/M44})
-                  (assoc :shader shader))]
-    (gl/set-viewport gl view-rect)
-    (gl/cull-faces gl glc/back)
-    (gl/clear-color-and-depth-buffer gl 0 0 0 1 1)
-    (gl/draw-with-shader gl model)))
+(defn to-model [buffers data]
+  (let
+   [{vertex-buffer :vertices
+     color-buffer :colors} buffers
+    _ (.fill vertex-buffer 0)
+    _ (.fill color-buffer 0)
+    face-count (fill-buffers (partial to-vertices vertex-buffer color-buffer)
+                             data)]
+    (vertex-data vertex-buffer color-buffer face-count)))
+
+(defn projection [scale]
+  (let
+   [h scale
+    w h]
+    (gl/ortho (- w) h w (- h) -1 1)))
+
+(defn draw-canvas [gl shader projection model]
+  (gl/set-viewport gl (gl/get-viewport-rect gl))
+  (gl/cull-faces gl glc/back)
+  (gl/clear-color-and-depth-buffer gl 0 0 0 1 1)
+  (gl/draw-with-shader gl (-> model
+                              (gl/make-buffers-in-spec gl glc/static-draw)
+                              (update :uniforms merge {:proj projection :model mat/M44})
+                              (assoc :shader shader))))
