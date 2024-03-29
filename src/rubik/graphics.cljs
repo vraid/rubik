@@ -11,9 +11,7 @@
   (sh/make-shader-from-spec gl default-shader))
 
 (defn buffer-insert [buffer size data offset]
-  (when (seq data)
-    (.set buffer (first data) (* size offset))
-    (recur buffer size (rest data) (inc offset))))
+  (.set buffer data (* size offset)))
 
 (defn vertex-data [vertex-buffer color-buffer face-count]
   {:attribs
@@ -27,20 +25,23 @@
    :num-vertices (* 3 face-count)
    :num-faces face-count})
 
-(defn to-vertices [vertex-buffer color-buffer n color center edges]
-  (loop [n n a (first edges) ls (rest edges)]
-    (buffer-insert color-buffer 4 (repeat 3 color) (* 3 n))
-    (if (seq ls)
-      (let
-       [b (first ls)]
-        (buffer-insert vertex-buffer 3 [center a b] (* 3 n))
-        (recur (inc n) b (rest ls)))
-      (inc n))))
+(defn to-vertices [vertex-buffer color-buffer]
+  (fn [n color center edges]
+    (let
+     [color-arr (.concat color color color)]
+      (loop [n n a (first edges) ls (rest edges)]
+        (buffer-insert color-buffer 4 color-arr (* 3 n))
+        (if (seq ls)
+          (let
+           [b (first ls)]
+            (buffer-insert vertex-buffer 3 (.concat center a b) (* 3 n))
+            (recur (inc n) b (rest ls)))
+          (inc n))))))
 
 (defn triangles [to-vertices n {:keys [pieces color centered? center center-edges]}]
   (if centered?
     (let
-     [edges (mapv :edges pieces)
+     [edges (map :edges pieces)
       black #js [0 0 0 1]
       center #js [0 0 0]
       square [#js [-100 -100 0] #js [100 -100 0] #js [100 100 0] #js [-100 100 0] #js [-100 -100 0]]
@@ -68,7 +69,7 @@
      color-buffer :colors} buffers
     _ (.fill vertex-buffer 0)
     _ (.fill color-buffer 0)
-    face-count (fill-buffers (partial to-vertices vertex-buffer color-buffer)
+    face-count (fill-buffers (to-vertices vertex-buffer color-buffer)
                              data)]
     (vertex-data vertex-buffer color-buffer face-count)))
 

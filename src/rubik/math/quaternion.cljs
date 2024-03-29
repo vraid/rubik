@@ -7,24 +7,16 @@
 
 (def normal vector/normal)
 
-(defn conjugate [q]
-  (let
-   [[a b c d] q]
-    [a (- b) (- c) (- d)]))
+(defn conjugate [[a b c d]]
+  [a (- b) (- c) (- d)])
 
-(defn product [p q]
-  (let
-   [[a b c d] q]
-    (mapv (fn [[sign q]]
-            (reduce + 0 (map * p q sign)))
-          [[[1 -1 -1 -1]
-            [a  b  c  d]]
-           [[1  1  1 -1]
-            [b  a  d  c]]
-           [[1 -1  1  1]
-            [c  d  a  b]]
-           [[1  1 -1  1]
-            [d  c  b  a]]])))
+(defn product
+  [[w x y z]
+   [a b c d]]
+  [(- (* w a) (+ (* x b) (* y c) (* z d)))
+   (- (+ (* w b) (* x a) (* y d)) (* z c))
+   (- (+ (* w c) (* y a) (* z b)) (* x d))
+   (- (+ (* w d) (* x c) (* z a)) (* y b))])
 
 (def product-normal (comp normal product))
 
@@ -38,20 +30,16 @@
                   (vector/scale-by (Math/sin a)
                                    (vector/normal axis))))))
 
-(defn to-matrix [q]
+(defn to-matrix [[a b c d]]
   (let
-   [[a b c d] q
-    [b2 c2 d2] (map (fn [n] (* n n)) [b c d])
-    [ab ac ad] (map (partial * a) [b c d])
-    bd (* b d)
-    bc (* b c)
-    cd (* c d)]
-    (matrix/sum
-     (matrix/identity 3)
-     (matrix/scale-by 2
-                      [[(- (+ c2 d2)) (- bc ad) (+ bd ac)]
-                       [(+ bc ad) (- (+ b2 d2)) (- cd ab)]
-                       [(- bd ac) (+ cd ab) (- (+ b2 c2))]]))))
+   [[b2 c2 d2] (map (fn [n] (* 2 n n)) [b c d])
+    [ab ac ad] (map (partial * 2 a) [b c d])
+    bd (* 2 b d)
+    bc (* 2 b c)
+    cd (* 2 c d)]
+    [[(- 1 (+ c2 d2)) (- bc ad) (+ bd ac)]
+     [(+ bc ad) (- 1 (+ b2 d2)) (- cd ab)]
+     [(- bd ac) (+ cd ab) (- 1 (+ b2 c2))]]))
 
 (def matrix-vector-product (comp matrix/vector-product to-matrix))
 (def integral-matrix-vector-product (comp matrix/vector-product matrix/integral to-matrix))

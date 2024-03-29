@@ -12,9 +12,10 @@
         (map (partial * (/ angle (dec (* 2 vertices))))
              (range (* 2 vertices)))))
 
-(defn rotate-piece [rotated {:keys [center edges]}]
-  {:center (rotated center)
-   :edges (mapv rotated edges)})
+(defn rotate-piece [rotated]
+  (fn [{:keys [center edges]}]
+    {:center (rotated center)
+     :edges (mapv rotated edges)}))
 
 (defn create-piece [vertices center corner [a-axis a-angle] [b-axis b-angle]]
   (let
@@ -43,7 +44,7 @@
      :center center
      :pieces
      (mapv (fn [rotation]
-             (rotate-piece (partial quaternion/vector-product rotation) piece))
+             ((rotate-piece (partial quaternion/vector-product rotation)) piece))
            rotations)}))
 
 (defn top-square [settings]
@@ -136,7 +137,7 @@
          :coordinates (rotated coordinates)
          :normal (rotated normal)
          :center (rotated center)
-         :pieces (mapv (partial rotate-piece rotated) pieces)))
+         :pieces (mapv (rotate-piece rotated) pieces)))
 
 (defn with-distance [{:keys [center pieces] :as square}]
   (let
