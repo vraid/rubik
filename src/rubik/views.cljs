@@ -92,4 +92,9 @@
      [:button
       {:style button-style
        :on-click (fn [_] (re-frame/dispatch [::events/disable-rotation (not @rotation-disabled?)]))}
-      "Toggle rotation"]]))
+      "Toggle rotation"]
+     [:h3]
+     [:div "Check it out on "
+      [:a {:href "https://github.com/vraid/rubik/"}
+       "Github"]]
+     [:h3]]))
